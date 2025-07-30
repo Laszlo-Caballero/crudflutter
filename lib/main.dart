@@ -1,9 +1,14 @@
+import 'package:crudflutter/components/todoItem.dart';
 import 'package:crudflutter/modal.dart';
-import 'package:crudflutter/models/Todo.dart';
+import 'package:crudflutter/models/todo.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_ce_flutter/adapters.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(TodoAdapter());
+  await Hive.openBox<Todo>('TODOS');
   runApp(const MyApp());
 }
 
@@ -48,53 +53,60 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Todo> _todos = [];
   
   
-  void _addTask() async {
-    final result = await showDialog<Todo>(context: context, builder: (ctx)=> CreateScreen());
-
-    if(result != null){
-      setState(() {
-        _todos.add(result);
-      });
-    }
+  void _addTask() {
+    showDialog(context: context, builder: (ctx)=> CreateScreen());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-            padding: const EdgeInsets.all(60),
-            child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 15,
-                  children: [
-                    Icon(LucideIcons.listTodo, size: 35),
-                    const Text("Gestor Tareas", 
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      )
+      body: ValueListenableBuilder(
+        valueListenable: Hive.box<Todo>('TODOS').listenable(), 
+        builder: (context, Box<Todo>box, _){
+          return Center(
+            child: Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: 15,
+                      children: [
+                        Icon(LucideIcons.listTodo, size: 35),
+                        const Text("Gestor Tareas", 
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          )
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const Text("Organiza tus tareas diarias y mejora tu productividad",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ),
-        )
+                    const Text("Organiza tus tareas diarias y mejora tu productividad",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 20),
+                      child: Column(
+                        spacing: 10,
+                        children: 
+                          box.values.map((todo)=> TodoItem(todo: todo
+                          )).toList()
+                      ),
+                    )
+                ],
+              ),
+            )
+          );
+        }
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addTask,

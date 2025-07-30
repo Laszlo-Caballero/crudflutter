@@ -1,4 +1,5 @@
-import 'package:crudflutter/models/Todo.dart';
+import 'package:crudflutter/models/todo.dart';
+import 'package:crudflutter/services/todoService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,6 +18,7 @@ class _CreateStateScreen extends State<CreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _taskNameController = TextEditingController();
   final _taskDescriptionController = TextEditingController();
+  final _todoService = TodoService();
 
   void _onSubmit() {
     if (_formKey.currentState!.validate()) {
@@ -27,9 +29,9 @@ class _CreateStateScreen extends State<CreateScreen> {
         title: taskName,
         description: taskDescription,
       );
+      _todoService.addTodo(newTask);
 
-
-      Navigator.of(context).pop(newTask);
+      Navigator.of(context).pop();
     }
   }
 
